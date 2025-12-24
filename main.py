@@ -6,34 +6,33 @@ from datetime import datetime, timedelta
 from supabase import create_client, Client
 import plotly.express as px
 
-# ================= 1. 系统配置区 =================
-# ⚠️ 请填入您的 Supabase 真实信息
+# ================= 1. System Configuration =================
+# ⚠️ Please enter your real Supabase credentials
 SUPABASE_URL = "https://gcphgliusmlisuabnzip.supabase.co"
 SUPABASE_KEY = "sb_publishable_sivoYyUISEUDMHcb9LNb2g_yBiUFESd"
 
 st.set_page_config(
     page_title="Factory Monitor (Dev Mode)",
-    page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 工业 UI 风格定义 (亮色版) ---
+# --- Industrial UI Style (Bright Theme) ---
 st.markdown("""
 <style>
-    /* 全局背景：亮灰白色 */
+    /* Global Background: Bright Grey/White */
     .stApp {
         background-color: #F8F9FA; 
         color: #1F2937;
     }
     
-    /* 侧边栏：纯白带边框 */
+    /* Sidebar: White with border */
     section[data-testid="stSidebar"] {
         background-color: #FFFFFF;
         border-right: 1px solid #E5E7EB;
     }
     
-    /* 顶部卡片/容器样式：白色背景+轻微阴影 */
+    /* Top Cards/Containers: White bg + light shadow */
     div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] > div {
         background-color: #FFFFFF;
         border: 1px solid #E5E7EB;
@@ -42,33 +41,33 @@ st.markdown("""
         padding: 15px;
     }
     
-    /* 关键指标数字：深蓝色，加粗 */
+    /* Key Metrics: Dark Blue, Bold */
     div[data-testid="stMetricValue"] {
         font-family: 'Roboto Mono', monospace;
         font-size: 1.8rem;
         font-weight: 700;
-        color: #2563EB; /* 科技蓝 (深色适配亮底) */
+        color: #2563EB; 
     }
     
-    /* 指标标签颜色 */
+    /* Metric Labels */
     div[data-testid="stMetricLabel"] {
-        color: #4B5563; /* 深灰 */
+        color: #4B5563; 
     }
     
-    /* 自定义状态徽章 */
+    /* Custom Status Badges */
     .status-badge {
         padding: 4px 8px;
         border-radius: 4px;
         font-size: 0.8rem;
         font-weight: bold;
     }
-    .status-ok {background-color: #D1FAE5; color: #065F46;} /* 浅绿底深绿字 */
-    .status-warn {background-color: #FEF3C7; color: #92400E;} /* 浅黄底深黄字 */
+    .status-ok {background-color: #D1FAE5; color: #065F46;} /* Green */
+    .status-warn {background-color: #FEF3C7; color: #92400E;} /* Yellow/Orange */
     
 </style>
 """, unsafe_allow_html=True)
 
-# ================= 2. 后端逻辑 (云端 + 模拟) =================
+# ================= 2. Backend Logic (Cloud + Simulation) =================
 
 @st.cache_resource
 def init_supabase():
@@ -79,12 +78,12 @@ def init_supabase():
 
 supabase: Client = init_supabase()
 
-# --- 核心：虚拟硬件层 (Mock Hardware) ---
+# --- Virtual Hardware Layer (Mock) ---
 def get_mock_frame():
-    """生成一个模拟的热成像噪点图"""
-    # 生成 480x640 的随机热力图
+    """Generates a simulated thermal noise image"""
+    # 480x640 random heatmap
     frame = np.random.rand(480, 640) * 255
-    # 模拟中心热源
+    # Simulate center heat source
     y, x = np.ogrid[:480, :640]
     mask = (x - 320)**2 + (y - 240)**2 <= 100**2
     frame[mask] += 100
@@ -93,7 +92,7 @@ def get_mock_frame():
     return np.stack((frame,)*3, axis=-1)
 
 def get_mock_data():
-    """生成模拟传感器读数"""
+    """Generates simulated sensor readings"""
     base = 60 + np.random.randn() * 2
     return {
         "Pultrusion": {
@@ -115,7 +114,7 @@ def get_mock_data():
     }
 
 def upload_data_batch(data_snapshot):
-    """将一次快照上传到云端"""
+    """Uploads a snapshot to the cloud"""
     if not supabase: return False
     try:
         rows = []
@@ -131,42 +130,42 @@ def upload_data_batch(data_snapshot):
     except:
         return False
 
-# ================= 3. 前端 UI 逻辑 =================
+# ================= 3. Frontend UI Logic =================
 
-st.sidebar.title("🏭 工业监控系统")
+st.sidebar.title("Factory Monitoring System")
 st.sidebar.caption("Dev Mode V4.0 | Bright Theme")
 
-# 导航菜单 (已删除图标)
-menu = st.sidebar.radio("系统模块", ["总览仪表盘 (Dashboard)", "工艺详情 (Process Detail)", "数据管理 (Data Admin)"])
+# Navigation Menu (Icons removed)
+menu = st.sidebar.radio("System Modules", ["Dashboard", "Process Detail", "Data Admin"])
 st.sidebar.divider()
 
-# 全局模拟器控制
-st.sidebar.subheader("模拟器控制")
-sim_active = st.sidebar.checkbox("启动虚拟产线", value=True)
-auto_upload = st.sidebar.checkbox("自动上传数据 (每5秒)", value=False)
+# Simulator Controls
+st.sidebar.subheader("Simulator Controls")
+sim_active = st.sidebar.checkbox("Activate Virtual Line", value=True)
+auto_upload = st.sidebar.checkbox("Auto Upload Data (5s interval)", value=False)
 
 if auto_upload and sim_active:
     if 'last_upload' not in st.session_state: st.session_state.last_upload = time.time()
     if time.time() - st.session_state.last_upload > 5:
         mock_d = get_mock_data()
         if upload_data_batch(mock_d):
-            st.toast("☁️ 模拟数据已自动上传云端", icon="✅")
+            st.toast("Simulated data uploaded to cloud")
         st.session_state.last_upload = time.time()
 
-# --- 模块 A: Dashboard 总览 ---
-if menu == "📊 总览仪表盘 (Dashboard)":
-    st.title("🏭 全厂状态总览")
-    st.markdown("实时监控各工艺环节核心指标 (模拟数据流)")
+# --- Module A: Dashboard ---
+if menu == "Dashboard":
+    st.title("Plant Status Overview")
+    st.markdown("Real-time monitoring of core metrics (Simulated Data)")
     
     live_data = get_mock_data()
     
     col1, col2 = st.columns(2)
     col3, col4 = st.columns(2)
     layout = [
-        (col1, "Pultrusion", "🟦 拉挤工艺"),
-        (col2, "Encapsulation", "🟪 封装工艺"),
-        (col3, "Conforming", "🟨 成型工艺"),
-        (col4, "Stranding", "🟩 绞线工艺")
+        (col1, "Pultrusion", "Pultrusion"),
+        (col2, "Encapsulation", "Encapsulation"),
+        (col3, "Conforming", "Conforming"),
+        (col4, "Stranding", "Stranding")
     ]
     
     for col, p_key, title in layout:
@@ -187,24 +186,24 @@ if menu == "📊 总览仪表盘 (Dashboard)":
                 
                 st.line_chart(np.random.randn(20) + val, height=100)
 
-# --- 模块 B: 工艺详情 (左视频 右数据) ---
-elif menu == "工艺详情 (Process Detail)":
-    target_process = st.selectbox("选择查看工艺", ["Pultrusion", "Encapsulation", "Conforming", "Stranding"])
+# --- Module B: Process Detail ---
+elif menu == "Process Detail":
+    target_process = st.selectbox("Select Process", ["Pultrusion", "Encapsulation", "Conforming", "Stranding"])
     st.divider()
     
     col_video, col_data = st.columns([0.65, 0.35])
     live_data = get_mock_data()[target_process]
     
     with col_video:
-        st.subheader("📹 实时热成像 (模拟信号)")
+        st.subheader("Real-time Thermal Imaging (Simulated Signal)")
         if sim_active:
             mock_frame = get_mock_frame()
             st.image(mock_frame, caption=f"Cam-01: {target_process} Station", use_container_width=True)
         else:
-            st.info("模拟器已暂停")
+            st.info("Simulator Paused")
             
     with col_data:
-        st.subheader("📊 实时温度均值")
+        st.subheader("Real-time Sensor Array")
         for m_name, info in live_data.items():
             unit = info.get("unit", "°C")
             delta_color = "inverse" if info['val'] > info['limit'] else "normal"
@@ -214,24 +213,24 @@ elif menu == "工艺详情 (Process Detail)":
                 c1.metric(m_name, f"{info['val']:.1f} {unit}", delta_color=delta_color)
                 c2.caption(f"Limit:\n{info['limit']} {unit}")
 
-# --- 模块 C: 数据管理 (已删除图标) ---
-elif menu == "数据管理 (Data Admin)":
-    st.title("数据库管理中心") # 已删除图标
-    st.markdown("直接与 Supabase 云端交互，进行数据审计和导出。")
+# --- Module C: Data Admin ---
+elif menu == "Data Admin":
+    st.title("Database Admin Center")
+    st.markdown("Interact directly with Supabase cloud for data audit and export.")
     
-    tab1, tab2 = st.tabs(["📉 历史数据查询", " 数据库工具"])
+    tab1, tab2 = st.tabs(["Historical Data Query", "Database Tools"])
     
     with tab1:
         c1, c2, c3 = st.columns(3)
-        q_proc = c1.selectbox("工艺筛选", ["Pultrusion", "Encapsulation", "Conforming", "Stranding"], key="q_proc")
-        q_metric = c2.text_input("指标名称 (如 Die Temp)", value="Die Temp")
-        q_days = c3.slider("查询最近 N 天", 1, 30, 7)
+        q_proc = c1.selectbox("Filter Process", ["Pultrusion", "Encapsulation", "Conforming", "Stranding"], key="q_proc")
+        q_metric = c2.text_input("Metric Name (e.g. Die Temp)", value="Die Temp")
+        q_days = c3.slider("Query last N days", 1, 30, 7)
         
-        if st.button("执行云端查询"):
+        if st.button("Execute Cloud Query"):
             if not supabase:
-                st.error("请先配置 Supabase 密钥！")
+                st.error("Please configure Supabase key first!")
             else:
-                with st.spinner("正在从 Supabase 拉取数据..."):
+                with st.spinner("Fetching data from Supabase..."):
                     start_date = (datetime.utcnow() - timedelta(days=q_days)).isoformat()
                     res = supabase.table("sensor_data").select("*")\
                         .eq("process_name", q_proc)\
@@ -245,22 +244,22 @@ elif menu == "数据管理 (Data Admin)":
                         df['created_at'] = pd.to_datetime(df['created_at'])
                         df['LocalTime'] = df['created_at'] + timedelta(hours=8)
                         
-                        st.success(f"查询成功！共找到 {len(df)} 条记录。")
+                        st.success(f"Query successful! Found {len(df)} records.")
                         
-                        # 亮色主题图表 (template="plotly_white")
-                        fig = px.area(df, x='LocalTime', y='value', title=f"{q_proc} - {q_metric} 趋势分析", template="plotly_white")
+                        # Bright Theme Chart
+                        fig = px.area(df, x='LocalTime', y='value', title=f"{q_proc} - {q_metric} Trend Analysis", template="plotly_white")
                         st.plotly_chart(fig, use_container_width=True)
                         
                         csv = df.to_csv(index=False).encode('utf-8')
-                        st.download_button("📥 导出查询结果 (CSV)", csv, "export_data.csv", "text/csv", type="primary")
+                        st.download_button("Export Results (CSV)", csv, "export_data.csv", "text/csv", type="primary")
                     else:
-                        st.warning("未查询到数据。")
+                        st.warning("No data found.")
 
     with tab2:
-        st.warning("⚠️ 危险操作区")
-        if st.button("生成 100 条测试数据并写入云端"):
+        st.warning("⚠️ Danger Zone") # Kept the warning icon as requested
+        if st.button("Generate & Upload 100 Test Records"):
             if not supabase:
-                st.error("无连接")
+                st.error("No Connection")
             else:
                 progress_bar = st.progress(0)
                 for i in range(10): 
@@ -268,9 +267,9 @@ elif menu == "数据管理 (Data Admin)":
                     upload_data_batch(mock_d)
                     progress_bar.progress((i+1)*10)
                     time.sleep(0.1)
-                st.success("100 条模拟数据写入完成！")
+                st.success("100 test records uploaded!")
 
-# 自动刷新 (修复了 experimental_rerun 报错)
-if menu != "数据管理 (Data Admin)" and sim_active:
+# Auto-refresh logic
+if menu != "Data Admin" and sim_active:
     time.sleep(0.5)
     st.rerun()
