@@ -137,7 +137,7 @@ st.sidebar.title("🏭 工业监控系统")
 st.sidebar.caption("Dev Mode V4.0 | Bright Theme")
 
 # 导航菜单 (已删除图标)
-menu = st.sidebar.radio("系统模块", ["📊 总览仪表盘 (Dashboard)", "🔍 工艺详情 (Process Detail)", "数据管理 (Data Admin)"])
+menu = st.sidebar.radio("系统模块", ["总览仪表盘 (Dashboard)", "工艺详情 (Process Detail)", "数据管理 (Data Admin)"])
 st.sidebar.divider()
 
 # 全局模拟器控制
@@ -188,7 +188,7 @@ if menu == "📊 总览仪表盘 (Dashboard)":
                 st.line_chart(np.random.randn(20) + val, height=100)
 
 # --- 模块 B: 工艺详情 (左视频 右数据) ---
-elif menu == "🔍 工艺详情 (Process Detail)":
+elif menu == "工艺详情 (Process Detail)":
     target_process = st.selectbox("选择查看工艺", ["Pultrusion", "Encapsulation", "Conforming", "Stranding"])
     st.divider()
     
@@ -204,7 +204,7 @@ elif menu == "🔍 工艺详情 (Process Detail)":
             st.info("模拟器已暂停")
             
     with col_data:
-        st.subheader("📊 实时传感器阵列")
+        st.subheader("📊 实时温度均值")
         for m_name, info in live_data.items():
             unit = info.get("unit", "°C")
             delta_color = "inverse" if info['val'] > info['limit'] else "normal"
@@ -219,7 +219,7 @@ elif menu == "数据管理 (Data Admin)":
     st.title("数据库管理中心") # 已删除图标
     st.markdown("直接与 Supabase 云端交互，进行数据审计和导出。")
     
-    tab1, tab2 = st.tabs(["📉 历史数据查询", "🛠️ 数据库工具"])
+    tab1, tab2 = st.tabs(["📉 历史数据查询", " 数据库工具"])
     
     with tab1:
         c1, c2, c3 = st.columns(3)
@@ -227,7 +227,7 @@ elif menu == "数据管理 (Data Admin)":
         q_metric = c2.text_input("指标名称 (如 Die Temp)", value="Die Temp")
         q_days = c3.slider("查询最近 N 天", 1, 30, 7)
         
-        if st.button("🔍 执行云端查询"):
+        if st.button("执行云端查询"):
             if not supabase:
                 st.error("请先配置 Supabase 密钥！")
             else:
